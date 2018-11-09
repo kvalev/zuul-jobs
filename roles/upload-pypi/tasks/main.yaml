@@ -39,6 +39,21 @@
   command: "{{ pypi_twine_executable }} upload --config-file {{ _pypirc_tmp.path }} -r {{ pypi_repository }} {{ item.path }}"
   with_items: "{{ found_tarballs.files }}"
 
+- name: Find zip files to upload
+  find:
+    paths: "{{ pypi_path }}"
+    patterns: "*.zip"
+  register: found_zipfiles
+
+- name: Report no zip files to be uploaded
+  debug:
+    msg: "Found no zip files to upload: {{found_zipfiles.msg}}"
+  when: found_zipfiles.files == []
+
+- name: Upload zip files with twine
+  command: "{{ pypi_twine_executable }} upload --config-file {{ _pypirc_tmp.path }} -r {{ pypi_repository }} {{ item.path }}"
+  with_items: "{{ found_zipfiles.files }}"
+
 - name: Delete .pypirc configuration file
   file:
     path: "{{ _pypirc_tmp.path }}"
